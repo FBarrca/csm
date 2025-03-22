@@ -160,8 +160,8 @@ class Generator:
         # Watermarking ensures transparency, dissuades misuse, and enables traceability.
         # Please be a responsible AI citizen and keep the watermarking in place.
         # If using CSM 1B in another application, use your own private key and keep it secret.
-        audio, wm_sample_rate = watermark(self._watermarker, audio, self.sample_rate, CSM_1B_GH_WATERMARK)
-        audio = torchaudio.functional.resample(audio, orig_freq=wm_sample_rate, new_freq=self.sample_rate)
+        # audio, wm_sample_rate = watermark(self._watermarker, audio, self.sample_rate, CSM_1B_GH_WATERMARK)
+        audio = torchaudio.functional.resample(audio, orig_freq=self.sample_rate, new_freq=self.sample_rate)
 
         return audio
 
@@ -169,6 +169,6 @@ class Generator:
 def load_csm_1b(device: str = "cuda") -> Generator:
     model = Model.from_pretrained("sesame/csm-1b")
     model.to(device=device, dtype=torch.bfloat16)
-
+    model.decoder = torch.compile(model.decoder, fullgraph=True, backend='inductor')
     generator = Generator(model)
     return generator
